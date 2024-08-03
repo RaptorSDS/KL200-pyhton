@@ -1,6 +1,10 @@
 # KL200-pyhton
 MicroPhython library for XKC-Kl200 laser distance sensor
 
+Developed by Tobias Baumann (aka Raptorsds) and ChatGPT with input based on the XKC-KL-200 PDF version 10 from 2023.
+
+Note: This project is not associated with XKC, and no error correction has been performed yet. This project is version 0.5 Beta.
+
 
 ## Overview
 
