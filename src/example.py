@@ -1,75 +1,56 @@
-
 #!/usr/bin/env python3
 import time
-import logging
 from xkc_kl200 import XKC_KL200, XKC_KL200_Error
-
-# Logging konfigurieren
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger('XKC_KL200_Demo')
 
 def main():
     # Sensor am seriellen Port anschließen (anpassen je nach System)
+    # Unter Windows z.B. 'COM3', unter Linux z.B. '/dev/ttyUSB0'
     PORT = '/dev/ttyUSB0'
     
     try:
         # Sensor initialisieren
-        logger.info(f"Verbinde mit Sensor an Port {PORT}")
         sensor = XKC_KL200(PORT, baudrate=9600)
+        print("XKC-KL200 Laser-Abstandssensor Test (Auto-Modus)")
         
         # Konfiguration des Sensors
-        logger.info("Konfiguriere Sensor...")
-        
-        # Kommunikationsmodus setzen
         result = sensor.set_communication_mode(1)  # UART-Modus
         if result != XKC_KL200_Error.SUCCESS:
-            logger.error(f"Fehler beim Setzen des Kommunikationsmodus: {result}")
-            return
+            print(f"Fehler beim Setzen des Kommunikationsmodus: {result}")
         
-        # Upload-Modus setzen (hier: manueller Modus)
-        result = sensor.set_upload_mode(False)
+        result = sensor.set_upload_mode(True)  # Automatischer Upload-Modus
         if result != XKC_KL200_Error.SUCCESS:
-            logger.error(f"Fehler beim Setzen des Upload-Modus: {result}")
-            return
+            print(f"Fehler beim Setzen des Upload-Modus: {result}")
         
-        # LED-Modus setzen
-        result = sensor.set_led_mode(0)  # LED leuchtet bei Erkennung
+        result = sensor.set_upload_interval(5)  # Intervall: 500ms
         if result != XKC_KL200_Error.SUCCESS:
-            logger.error(f"Fehler beim Setzen des LED-Modus: {result}")
-            return
+            print(f"Fehler beim Setzen des Upload-Intervalls: {result}")
         
-        logger.info("Sensor erfolgreich konfiguriert. Starte Messungen...")
+        print("Sensor konfiguriert. Empfange automatische Messungen...")
         
-        # Hauptschleife für Messungen
+        # Hauptschleife für automatische Messungen
         try:
             while True:
-                try:
-                    # Distanz messen mit Timeout
-                    distance = sensor.read_distance(timeout=0.5)
-                    
-                    # Ergebnis ausgeben
-                    logger.info(f"Gemessene Distanz: {distance} mm")
-                    
-                except Exception as e:
-                    logger.error(f"Fehler bei der Messung: {e}")
+                # Prüfen, ob neue Daten verfügbar sind
+                if sensor.available():
+                    # Daten verarbeiten
+                    if sensor.process_auto_data():
+                        # Distanz auslesen und ausgeben
+                        distance = sensor.get_distance()
+                        print(f"Distanz: {distance} mm")
                 
-                time.sleep(1.0)  # Alle 1 Sekunde messen
+                # Kurze Pause, um CPU-Last zu reduzieren
+                time.sleep(0.01)
         
         except KeyboardInterrupt:
-            logger.info("Messung durch Benutzer beendet.")
+            print("\nMessung beendet.")
     
     except Exception as e:
-        logger.error(f"Unerwarteter Fehler: {e}", exc_info=True)
+        print(f"Fehler: {e}")
     
     finally:
         # Verbindung zum Sensor schließen
         if 'sensor' in locals():
-            logger.info("Schließe Verbindung zum Sensor...")
             sensor.close()
-            logger.info("Verbindung geschlossen.")
 
 if __name__ == "__main__":
     main()
