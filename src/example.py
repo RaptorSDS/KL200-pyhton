@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import time
-from xkc_kl200 import XKC_KL200, XKC_KL200_Error
+from XKC_KL200 import XKC_KL200, XKC_KL200_Error
 
 def main():
     # Sensor am seriellen Port anschließen (anpassen je nach System)
